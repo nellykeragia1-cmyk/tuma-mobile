@@ -1,0 +1,35 @@
+name: Build Tuma Mobile (EAS)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'mobile/**'
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install EAS CLI
+        run: npm i -g eas-cli
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci || npm install
+
+      - name: Build APK on EAS (Cloud)
+        working-directory: mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas whoami || echo "not logged"
+          eas build --platform android --profile preview --non-interactive
+
